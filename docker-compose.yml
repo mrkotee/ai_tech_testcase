@@ -1,0 +1,30 @@
+
+
+networks:
+  mynetwork:
+    driver: bridge
+
+services:
+  flask:
+    build: .
+    ports:
+     - "8000:5000"
+    restart: on-failure
+    depends_on:
+      elastic:
+        condition: service_started
+    networks:
+      - mynetwork
+
+  elastic:
+    image: elasticsearch:7.17.0
+    container_name: elastic
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - mynetwork

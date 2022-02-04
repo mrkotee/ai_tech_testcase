@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from settings import db_path, default_data_filepath
 from settings import elastic_index, elastic_host, elastic_port
 from database import models
@@ -16,6 +17,10 @@ else:
     doc_len = len(models.Document.query.all())
 
 e_connection = elastic.ElasticConnection(elastic_host, elastic_port)
+for _ in range(30):
+    if e_connection.ping():
+        break
+    time.sleep(1)
 if e_connection.ping():
     print("ElasticSearch connected")
 else:
