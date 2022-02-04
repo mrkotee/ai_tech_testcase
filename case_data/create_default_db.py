@@ -1,12 +1,12 @@
-from threading import Thread
+
 import csv
 from datetime import datetime as dt
-from models import Document, Rubric, db
+from database.models import Document, Rubric
+from database.elastic import ElasticConnection
 
-FILENAME = "posts.csv"
 
-
-def create_db(alchemy_session):
+def create_db(csv_filepath, alchemy_session):
+    """fill database from csv file"""
     def go_through(documents: list, alchemy_session, base_rubrics: dict):
         for i, row in enumerate(documents):
             text = row['text']
@@ -23,19 +23,17 @@ def create_db(alchemy_session):
                     base_rubric = Rubric(name=rubric)
                     base_rubrics[rubric] = base_rubric
                     alchemy_session.add(base_rubric)
-                    alchemy_session.commit()
                 document.rubrics.append(base_rubric)
+            alchemy_session.commit()
 
     try:
-        file = open(FILENAME)
+        file = open(csv_filepath)
         reader = csv.DictReader(file)
         documents = list(reader)
-        # go_through(reader)
     except UnicodeDecodeError:
-        file = open(FILENAME, encoding="utf_8_sig")
+        file = open(csv_filepath, encoding="utf_8_sig")
         reader = csv.DictReader(file)
         documents = list(reader)
-        # go_through(reader)
 
     # threads = []
     doc_len = len(documents)
@@ -43,7 +41,6 @@ def create_db(alchemy_session):
     base_rubrics = {rubric.name: rubric for rubric in Rubric.query.all()}
     for i in range(100, doc_len, 100):
         doc_slice = slice(prev, i)
-        print(doc_slice)
         prev = i
         go_through(documents[doc_slice], alchemy_session, base_rubrics)
         alchemy_session.commit()
@@ -51,8 +48,7 @@ def create_db(alchemy_session):
         # thread.start()
         # threads.append(thread)
     else:
-        doc_slice = slice(prev, i)
-        print(doc_slice)
+        doc_slice = slice(prev, doc_len)
         go_through(documents[doc_slice], alchemy_session, base_rubrics)
         alchemy_session.commit()
         # thread = Thread(target=go_through, args=(documents[doc_slice], alchemy_session, base_rubrics))
@@ -60,20 +56,14 @@ def create_db(alchemy_session):
         # threads.append(thread)
 
     file.close()
+    return doc_len, len(base_rubrics)
 
 
-if __name__ == '__main__':
-    session = db.session
-    create_db(session)
+def fill_elastic(index, elastic_obj: ElasticConnection):
+    elastic_obj.create_index(index)
+    documents = Document.query.all()
 
-    # import cProfile
-    # import pstats
-    #
-    # pr = cProfile.Profile()
-    # pr.enable()
-    # create_db(session)
-    # pr.disable()
-    #
-    # stats = pstats.Stats(pr)
-    # stats.sort_stats(pstats.SortKey.TIME)
-    # stats.print_stats()
+    for document in documents:
+        doc_dict = {"text": document.text,
+                    "base_id": document.id}
+        elastic_obj.add_item(index, doc_dict)
