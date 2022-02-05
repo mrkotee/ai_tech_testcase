@@ -1,0 +1,97 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "0.0.8",
+    "title": "ai_tech_testcase"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000/document"
+    }
+  ],
+  "paths": {
+    "/{doc_id}": {
+      "delete": {
+        "summary": "Deletes document by id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "doc_id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "Numeric ID of the document to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Return documents contains requested text",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "text",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Text in document to look for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array with documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Document"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Document": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "created_date": {
+            "type": "string"
+          },
+          "rubrics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
