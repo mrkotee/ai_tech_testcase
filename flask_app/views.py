@@ -1,12 +1,12 @@
 import flask
 from database.models import Document, Rubric, db
 from database.elastic import ElasticConnection
-from settings import elastic_index, elastic_host, elastic_port
+from settings import elastic_index, elastic_url
 from .app import app
 
 session = db.session
 
-e_connection = ElasticConnection(elastic_host, elastic_port)
+e_connection = ElasticConnection(elastic_url)
 
 
 @app.get("/document/search")

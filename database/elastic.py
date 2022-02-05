@@ -3,10 +3,8 @@ from elasticsearch import Elasticsearch
 
 class ElasticConnection:
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.elastic_obj = Elasticsearch([{'host': self.host, 'port': self.port}])
+    def __init__(self, url):
+        self.elastic_obj = Elasticsearch(url)
 
     def ping(self):
         return self.elastic_obj.ping()

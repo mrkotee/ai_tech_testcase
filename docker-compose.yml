@@ -1,8 +1,8 @@
 
 
-networks:
-  mynetwork:
-    driver: bridge
+#networks:
+#  mynetwork:
+#    driver: bridge
 
 services:
   flask:
@@ -11,14 +11,15 @@ services:
      - "8000:5000"
     restart: on-failure
     depends_on:
-      elastic:
-        condition: service_started
-    networks:
-      - mynetwork
+      - elastic
+#    links:
+#      - elastic
+#    networks:
+#      - mynetwork
 
   elastic:
     image: elasticsearch:7.17.0
-    container_name: elastic
+    container_name: "elastic"
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
@@ -26,5 +27,5 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
-    networks:
-      - mynetwork
+#    networks:
+#      - mynetwork

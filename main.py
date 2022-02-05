@@ -2,7 +2,7 @@ import os
 import sys
 import time
 from settings import db_path, default_data_filepath
-from settings import elastic_index, elastic_host, elastic_port
+from settings import elastic_index, elastic_url
 from database import models
 from database import elastic
 from flask_app.views import app
@@ -16,7 +16,9 @@ if not os.path.exists(db_path):  # create sqlite db file
 else:
     doc_len = len(models.Document.query.all())
 
-e_connection = elastic.ElasticConnection(elastic_host, elastic_port)
+e_connection = elastic.ElasticConnection(elastic_url)
+
+print("Try connect to ElasticSearch")
 for _ in range(30):
     if e_connection.ping():
         break
@@ -38,4 +40,4 @@ if doc_len > len(e_connection.get_all_by_index(elastic_index, doc_len)):
 
 
 print("Starting Flask app")
-app.run(debug=True)
+app.run(host='0.0.0.0')
